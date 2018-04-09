@@ -9,7 +9,7 @@
     <!-- <link rel="stylesheet" type="text/css" media="screen" href="main.css" /> -->
     <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="crossorigin="anonymous"></script>
     <script src="https://www.gstatic.com/firebasejs/live/3.0/firebase.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.0/moment.js"></script>
     <!-- <script src="assets/javascript/script.js"></script> -->
 </head>
 <!-- Begin body -->
@@ -101,17 +101,55 @@
     // Initialize Firebase
     // This is the code to be changed with the new config
     var config = {
-      apiKey: "AIzaSyAJS4YQWU5DmESeYueG1qH1NGkjv3DncEY",
-      authDomain: "fir-click-counter-7cdb9.firebaseapp.com",
-      databaseURL: "https://fir-click-counter-7cdb9.firebaseio.com",
-      storageBucket: "fir-click-counter-7cdb9.appspot.com"
+        apiKey: "AIzaSyCmVW4eKe9yTYWeAV2mMYIh-QDBr68dB5A",
+        authDomain: "fir-booze-schedule.firebaseapp.com",
+        databaseURL: "https://fir-booze-schedule.firebaseio.com",
+        projectId: "fir-booze-schedule",
+        storageBucket: "fir-booze-schedule.appspot.com",
+        messagingSenderId: "52144854948"
     };
 
     firebase.initializeApp(config);
+    var database = firebase.database(); 
+    database.ref().orderByChild("dateSubmitted").on("child_added", function (snapshot){
+            var result =snapshot.val(); 
+            console.log(result+"this is result");
 
-    // JAVASCRIPT BEGINS WITH JQUERY
+    $.each( database.ref(), function( key, value ) {
+  console.log( key + ": " + value );
+});
+
+
+    // JAVASCRIPT BEGINS WITH JQUERY CLICK EVENT
 
     $(".btn-primary").on("click",(function(){
+
         console.log("This is the button click")
-    }))
+        var newDrink = $( "#new-drink" ).val().trim();
+        var newSpirit = $( "#new-spirit" ).val().trim();
+        var newFrequency = $( "#new-frequency" ).val().trim();
+        var newNextOrder = $( "#new-next-order" ).val().trim();
+        console.log("these are the form variables"+newDrink+"spirit="+newSpirit+"frequency="+newFrequency+"newNextOrder="+newNextOrder);
+        
+//OBJECT STORED IN DATABASE; 
+        database.ref().push({
+            newDrink: newDrink,
+            newSpirit: newSpirit, 
+            newFrequency: newFrequency, 
+            newNextOrder: newNextOrder,
+            dateSubmitted: firebase.database.ServerValue.TIMESTAMP
+        });
+        database.ref().orderByChild("dateSubmitted").on("child_added", function (snapshot){
+            var result =snapshot.val(); 
+            console.log(result+"this is result");
+
+            var drinkrow = $("<tr>");
+                drinkrow.append("<td>" + result.newDrink + "</td>").append("<td>" + result.newSpirit + "</td>")
+                .append("<td>" + result.newFrequency + "</td>").append("<td>" + result.newNextOrder + "</td>");
+                $("tbody").append(drinkrow);
+
+        })
+
+    })); 
+
 </script>
