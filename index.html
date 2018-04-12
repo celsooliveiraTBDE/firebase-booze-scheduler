@@ -38,30 +38,7 @@
                 </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">Margarita</th>
-                    <td>Tequila</td>
-                    <td>5</td>
-                    <td>05:35PM</td>
-                    <td>5</td>
-
-                  </tr>
-                  <tr>
-                    <th scope="row">Old Fashioned</th>
-                    <td>Whiskey</td>
-                    <td>10</td>
-                    <td>05:40PM</td>
-                    <td>10</td>
-
-                  </tr>
-                  <tr>
-                    <th scope="row">Manhattan</th>
-                    <td>Whiskey</td>
-                    <td>15</td>
-                    <td>05:45PM</td>
-                    <td>15</td>
-
-                  </tr>
+                    <!-- the body of the table will go here -->
                 </tbody>
               </table>
             </div></div>
@@ -82,11 +59,11 @@
           </div>
           <div class="form-group">
             <label for="exampleFormControlInput1">Frequency</label>
-            <input type="text" class="form-control" id="new-frequency" >
+            <input type="number" class="form-control" id="new-frequency" >
           </div>
           <div class="form-group">
-            <label for="exampleFormControlInput1">Last Order</label>
-            <input type="text" class="form-control" id="new-next-order" >
+            <label for="exampleFormControlInput1">First Order</label>
+            <input type="time" class="form-control" id="first-order" >
           </div>
           <button type="button" class="btn btn-primary">Submit</button>
     </form>
@@ -98,6 +75,7 @@
 <!-- BEGIN SCRIPT - temp -->
 
 <script>
+
     // Initialize Firebase
     // This is the code to be changed with the new config
     var config = {
@@ -111,45 +89,89 @@
 
     firebase.initializeApp(config);
     var database = firebase.database(); 
+
+            // Lists existing items on table    
     database.ref().orderByChild("dateSubmitted").on("child_added", function (snapshot){
             var result =snapshot.val(); 
-            console.log(result+"this is result");
+            console.log (result); 
+            console.log(result.firstOrder, "this is first order");//cycle through
+            // Begin Moment.js calculations
+            var firstTimeConverted = moment(firstOrder, "HH:mm").subtract(1, "years");
+            console.log(firstTimeConverted);
 
-    $.each( database.ref(), function( key, value ) {
-  console.log( key + ": " + value );
-});
+            // Current Time
+            var currentTime = moment();
+            console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+
+            // Difference between the times
+            var diffTime = moment().diff(moment(firstTimeConverted), "minutes");
+            console.log("DIFFERENCE IN TIME: " + diffTime);
+
+    // Time apart (remainder)
+            var timeApart = diffTime % result.newFrequency;
+            console.log(timeApart);
+
+    // Minute Until Train
+    var tMinutesTillNextDrink = result.newFrequency - timeApart;
+    console.log("MINUTES TILL TRAIN: " + tMinutesTillNextDrink);
+
+    // Next Train
+    var nextDrink = moment().add(tMinutesTillNextDrink, "minutes");
+    console.log("ARRIVAL TIME: " + moment(nextDrink).format("hh:mm"));
+            
+            var drinkrow = $("<tr>");
+                drinkrow.append("<td>" + result.newDrink + "</td>").append("<td>" + result.newSpirit + "</td>")
+                .append("<td>" + result.newFrequency + "</td>").append("<td>" + moment(nextDrink).format("hh:mm") + "</td>").append("<td>" + tMinutesTillNextDrink + "</td>");
+                $("tbody").append(drinkrow);
+
+        })
+var test = moment().format("12 23 A"); 
+var test2 = moment().hour("23");    
+
+var newDrink = ""
+var newSpirit = "";
+var newFrequency =5;
+var firstOrder = '20:50';
+var nextOrder = "";
 
 
-    // JAVASCRIPT BEGINS WITH JQUERY CLICK EVENT
+
 
     $(".btn-primary").on("click",(function(){
+        // tests for empty fields
+        if ($("#new-drink").val() === "" ||$("#new-spirit").val() === "" ||$("#new-frequency").val() === "" ||$("#first-order").val() === "") {
+        console.log("empty-clicks"); 
+        $('input').reset(); 
 
-        console.log("This is the button click")
+        }
+        //executes the submit, if / when all fields have been validated; 
+
+        else{
+
+// Store inputs trimmed into the vars. 
         var newDrink = $( "#new-drink" ).val().trim();
         var newSpirit = $( "#new-spirit" ).val().trim();
         var newFrequency = $( "#new-frequency" ).val().trim();
-        var newNextOrder = $( "#new-next-order" ).val().trim();
-        console.log("these are the form variables"+newDrink+"spirit="+newSpirit+"frequency="+newFrequency+"newNextOrder="+newNextOrder);
+        var firstOrder = $( "#first-order" ).val().trim();
         
 //OBJECT STORED IN DATABASE; 
         database.ref().push({
             newDrink: newDrink,
             newSpirit: newSpirit, 
             newFrequency: newFrequency, 
-            newNextOrder: newNextOrder,
+            firstOrder: firstOrder,
             dateSubmitted: firebase.database.ServerValue.TIMESTAMP
         });
-        database.ref().orderByChild("dateSubmitted").on("child_added", function (snapshot){
-            var result =snapshot.val(); 
-            console.log(result+"this is result");
+        // database.ref().orderByChild("dateSubmitted").on("child_added", function (snapshot){
+        //     var result =snapshot.val(); 
+        //     console.log(result.newFrequency); 
 
-            var drinkrow = $("<tr>");
-                drinkrow.append("<td>" + result.newDrink + "</td>").append("<td>" + result.newSpirit + "</td>")
-                .append("<td>" + result.newFrequency + "</td>").append("<td>" + result.newNextOrder + "</td>");
-                $("tbody").append(drinkrow);
-
-        })
-
+        //     var drinkrow = $("<tr>");
+        //         drinkrow.append("<td>" + result.newDrink + "</td>").append("<td>" + result.newSpirit + "</td>")
+        //         .append("<td>" + result.newFrequency + "</td>").append("<td>" + result.nextOrder + "</td>");
+        //         $("tbody").append(drinkrow);
+        // })
+    }
     })); 
 
 </script>
